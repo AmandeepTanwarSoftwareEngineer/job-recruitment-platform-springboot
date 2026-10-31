@@ -4,6 +4,7 @@ package com.achal.jobportal.service;
 import com.achal.jobportal.dto.CreateUserRequest;
 import com.achal.jobportal.dto.UserResponse;
 import com.achal.jobportal.entity.User;
+import com.achal.jobportal.exception.DuplicateResourceException;
 import com.achal.jobportal.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class UserService {
 
         // 1. Stop if the email is ALREADY used (remove the "!")
         if (userRepository.existsByEmail(userEmail)) {
-            throw new RuntimeException("Email already exists");  // replace with your own exception later
+            throw new DuplicateResourceException("Email already exists");  // -> 409 Conflict
         }
 
         // 2. Fill the user with data from the request (yours was empty)
