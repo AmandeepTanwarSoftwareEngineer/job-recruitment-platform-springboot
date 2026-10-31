@@ -7,10 +7,7 @@ import com.achal.jobportal.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
@@ -27,6 +24,11 @@ public class UserController {
     public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request){
         UserResponse userResponse = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> findUser(@PathVariable Long id){
+        UserResponse userResponse = userService.findUser(id);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userResponse);
     }
 
 
