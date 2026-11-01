@@ -1,0 +1,99 @@
+package com.achal.jobportal.auth.service;
+
+import com.achal.jobportal.auth.dto.AuthResponse;
+import com.achal.jobportal.auth.dto.LoginRequest;
+import com.achal.jobportal.auth.dto.RegisterRequest;
+import com.achal.jobportal.dto.UserResponse;
+import com.achal.jobportal.entity.Role;
+import com.achal.jobportal.entity.User;
+import com.achal.jobportal.exception.BadRequestException;
+import com.achal.jobportal.exception.DuplicateResourceException;
+import com.achal.jobportal.exception.UnauthorizedException;
+import com.achal.jobportal.repository.UserRepository;
+import com.achal.jobportal.security.JwtService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.Optional;
+
+@Service
+public class AuthService {
+
+    private static final int BCRYPT_MAX_BYTES = 72;
+
+    // Same message for an unknown email and a wrong password, so login can't be used
+    // to find out which emails have an account.
+    private static final String INVALID_CREDENTIALS = "Invalid email or password";
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    // Checked against when the email is unknown, so that case takes as long as a wrong
+    // password and response times don't reveal which emails exist.
+    private final String dummyPasswordHash;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.dummyPasswordHash = passwordEncoder.encode("not-a-real-password");
+    }
+
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        String email = normalizeEmail(request.getEmail());
+
+        // BCrypt rejects passwords over 72 bytes; turn that into a 400 instead of a 500.
+        if (isTooLongForBcrypt(request.getPassword())) {
+            throw new BadRequestException("Password is too long");
+        }
+
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("Email already exists"); // -> 409
+        }
+        // If two requests with the same email get past this check at the same time, the unique
+        // constraint on users.email stops the second one and GlobalExceptionHandler returns 409.
+
+        User user = new User();
+        user.setName(request.getName().trim());
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole() != null ? request.getRole() : Role.JOB_SEEKER);
+
+        User saved = userRepository.save(user);
+        return new AuthResponse("Registration successful", UserResponse.from(saved));
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponse login(LoginRequest request) {
+        // Register can't create a password this long, so it can't be right. Rejecting it
+        // here also stops BCrypt from throwing on it.
+        if (isTooLongForBcrypt(request.getPassword())) {
+            throw new UnauthorizedException(INVALID_CREDENTIALS);
+        }
+
+        Optional<User> user = userRepository.findByEmail(normalizeEmail(request.getEmail()));
+        String storedHash = user.map(User::getPassword).orElse(dummyPasswordHash);
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), storedHash);
+
+        if (user.isEmpty() || !passwordMatches) {
+            throw new UnauthorizedException(INVALID_CREDENTIALS); // -> 401
+        }
+
+        User found = user.get();
+        return new AuthResponse("Login successful", UserResponse.from(found), jwtService.generateToken(found));
+    }
+
+    // Store and look up emails in one form so "Asha@Example.com" and "asha@example.com" are the same account.
+    private static String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isTooLongForBcrypt(String password) {
+        return password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_BYTES;
+    }
+}

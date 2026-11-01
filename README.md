@@ -14,5 +14,5 @@ Java 21 · Spring Boot · Spring Data JPA · MySQL · Spring Security + JWT · M
 
 ## Run locally
 1. Start MySQL
-2. Set environment variable `DB_PASSWORD`
+2. Set environment variables `DB_PASSWORD` and `JWT_SECRET` (any random string of at least 32 characters, used to sign login tokens)
 3. Run `JobportalApplication`
