@@ -11,13 +11,16 @@ import com.achal.jobportal.exception.DuplicateResourceException;
 import com.achal.jobportal.exception.UnauthorizedException;
 import com.achal.jobportal.repository.UserRepository;
 import com.achal.jobportal.security.JwtService;
+import org.springframework.security.authentication.AuthenticationManager;               // NEW
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // NEW
+import org.springframework.security.core.AuthenticationException;                       // NEW
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.Optional;
+// REMOVED: import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -29,20 +32,22 @@ public class AuthService {
     private static final String INVALID_CREDENTIALS = "Invalid email or password";
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder; // still used by register
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager; // NEW
 
-    // Checked against when the email is unknown, so that case takes as long as a wrong
-    // password and response times don't reveal which emails exist.
-    private final String dummyPasswordHash;
+    // REMOVED: dummyPasswordHash (DaoAuthenticationProvider does this itself)
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    // CHANGED: AuthenticationManager added
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.dummyPasswordHash = passwordEncoder.encode("not-a-real-password");
+        this.authenticationManager = authenticationManager; // NEW
     }
 
+    // register: NO CHANGE
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.getEmail());
@@ -68,6 +73,7 @@ public class AuthService {
         return new AuthResponse("Registration successful", UserResponse.from(saved));
     }
 
+    // CHANGED: password check now goes through AuthenticationManager
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         // Register can't create a password this long, so it can't be right. Rejecting it
@@ -75,17 +81,22 @@ public class AuthService {
         if (isTooLongForBcrypt(request.getPassword())) {
             throw new UnauthorizedException(INVALID_CREDENTIALS);
         }
+        String email = normalizeEmail(request.getEmail());
 
-        Optional<User> user = userRepository.findByEmail(normalizeEmail(request.getEmail()));
-        String storedHash = user.map(User::getPassword).orElse(dummyPasswordHash);
-        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), storedHash);
-
-        if (user.isEmpty() || !passwordMatches) {
+        // DaoAuthenticationProvider -> CustomUserDetailsService (load user) -> PasswordEncoder (check)
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+        } catch (AuthenticationException e) {
+            // Without this catch, GlobalExceptionHandler would turn it into a 500.
             throw new UnauthorizedException(INVALID_CREDENTIALS); // -> 401
         }
 
-        User found = user.get();
-        return new AuthResponse("Login successful", UserResponse.from(found), jwtService.generateToken(found));
+        // The token needs the id and role, so load the entity.
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedException(INVALID_CREDENTIALS));
+
+        return new AuthResponse("Login successful", UserResponse.from(user), jwtService.generateToken(user));
     }
 
     // Store and look up emails in one form so "Asha@Example.com" and "asha@example.com" are the same account.
