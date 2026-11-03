@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -68,6 +69,13 @@ public class GlobalExceptionHandler {
                                                                 HttpServletRequest request) {
         log.warn("Data integrity violation on {}: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "Request conflicts with existing data", request, null);
+    }
+
+    // @PreAuthorize said no (e.g. a JOB_SEEKER calling a RECRUITER-only endpoint) -> 403.
+    // Without this, the catch-all below would turn it into a 500.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "You do not have permission to do this", request, null);
     }
 
     // Everything else.

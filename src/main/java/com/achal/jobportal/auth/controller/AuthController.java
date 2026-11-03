@@ -34,6 +34,7 @@ public class AuthController {
     // Nothing is created, so this is 200 rather than 201.
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        System.out.println("entered in controller");
         return ResponseEntity.ok(authService.login(request));
     }
 }
