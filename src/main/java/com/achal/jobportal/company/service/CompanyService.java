@@ -5,6 +5,7 @@ import com.achal.jobportal.company.dto.CompanyResponse;
 import com.achal.jobportal.company.entity.Company;
 import com.achal.jobportal.company.repository.CompanyRepository;
 import com.achal.jobportal.entity.User;
+import com.achal.jobportal.exception.DuplicateResourceException;
 import com.achal.jobportal.security.CurrentUserProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,11 @@ public class CompanyService {
     public CompanyResponse createCompany(CompanyRequest request) {
         // The logged-in recruiter owns the company; this fills companies.recruiter_id.
         User recruiter = currentUserProvider.getCurrentUser();
+
+        // A recruiter can own only one company -> 409 with a clear message.
+        if (companyRepository.existsByRecruiterId(recruiter.getId())) {
+            throw new DuplicateResourceException("You already have a company");
+        }
 
         Company company = new Company();
         company.setName(request.getName().trim());

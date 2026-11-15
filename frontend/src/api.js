@@ -4,21 +4,29 @@
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
 
-// Sends JSON and returns { ok, data }. On success data is the AuthResponse
-// ({ message, user, token }); on failure it is the ApiErrorResponse ({ message, fieldErrors }).
-export async function postJson(url, body) {
+// Sends JSON and returns { ok, status, data }. On success data is the response body
+// (e.g. the AuthResponse { message, user, token }); on failure it is the ApiErrorResponse
+// ({ message, fieldErrors }).
+// Pass a token for endpoints that need sign-in; it is sent as "Authorization: Bearer <token>".
+// Leave it out for register and login: a bad token there would get a 401.
+export async function postJson(url, body, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
     const data = await response
       .json()
       .catch(() => ({ message: `Request failed (${response.status}). Is the backend running?` }));
-    return { ok: response.ok, data };
+    return { ok: response.ok, status: response.status, data };
   } catch {
-    return { ok: false, data: { message: "Could not reach the server." } };
+    return { ok: false, status: 0, data: { message: "Could not reach the server." } };
   }
 }
 

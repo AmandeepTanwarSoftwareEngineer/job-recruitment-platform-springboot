@@ -25,9 +25,7 @@ public class Company {
     private String location;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recruiter_id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "recruiter_id", nullable = false, unique = true)
     private User recruiter;
-
-
 }
