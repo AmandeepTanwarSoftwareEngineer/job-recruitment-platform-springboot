@@ -58,4 +58,13 @@ public class JobService {
                 .map(JobResponse::from)
                 .toList();
     }
+
+    // All jobs from all companies, newest first. Job seekers browse this list to apply.
+    @Transactional(readOnly = true)
+    public List<JobResponse> getAllJobs() {
+        return jobRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(JobResponse::from)
+                .toList();
+    }
 }

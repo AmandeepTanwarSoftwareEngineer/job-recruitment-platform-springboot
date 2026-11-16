@@ -8,38 +8,49 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-// candidate/entity/Candidate.java
 @Entity
+@Table(name = "candidates")
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "applications",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"job_id", "candidate_id"}))
 public class Candidate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    // One user = one candidate profile.
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @Column(length = 20)
     private String phone;
 
-    private String headline;
-
+    @Column(length = 1000)
     private String skills;
 
     private Integer experienceYears;
 
+    @Column(length = 100)
     private String currentLocation;
 
-    private String highestQualification;
-
+    @Column(length = 500)
     private String resumeUrl;
 
-    private LocalDateTime createdAt;     // TODO: set automatically on create
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;     // TODO: set automatically on update
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

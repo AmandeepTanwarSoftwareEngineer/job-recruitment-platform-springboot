@@ -9,6 +9,16 @@ export function postJson(url, body, token) {
   return request("POST", url, body, token);
 }
 
+// PUT with a JSON body (create-or-replace, e.g. the candidate profile).
+export function putJson(url, body, token) {
+  return request("PUT", url, body, token);
+}
+
+// PATCH with a JSON body (change part of something, e.g. an application's status).
+export function patchJson(url, body, token) {
+  return request("PATCH", url, body, token);
+}
+
 // GET. Returns { ok, status, data } (see request below).
 export function getJson(url, token) {
   return request("GET", url, undefined, token);

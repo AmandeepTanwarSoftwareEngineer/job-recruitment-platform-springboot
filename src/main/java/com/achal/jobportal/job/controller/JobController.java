@@ -34,6 +34,12 @@ public class JobController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // Every job, newest first. Any signed-in user (job seekers browse this to apply).
+    @GetMapping
+    public List<JobResponse> allJobs() {
+        return jobService.getAllJobs();
+    }
+
     // Jobs posted by the logged-in recruiter's company, newest first.
     @GetMapping("/mine")
     @PreAuthorize("hasRole('RECRUITER')")
