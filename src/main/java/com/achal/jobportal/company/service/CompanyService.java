@@ -6,6 +6,7 @@ import com.achal.jobportal.company.entity.Company;
 import com.achal.jobportal.company.repository.CompanyRepository;
 import com.achal.jobportal.entity.User;
 import com.achal.jobportal.exception.DuplicateResourceException;
+import com.achal.jobportal.exception.ResourceNotFoundException;
 import com.achal.jobportal.security.CurrentUserProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,5 +40,14 @@ public class CompanyService {
 
         Company saved = companyRepository.save(company);
         return CompanyResponse.from(saved);
+    }
+
+    // The logged-in recruiter's company, or 404 if they have not created one yet.
+    @Transactional(readOnly = true)
+    public CompanyResponse getMyCompany() {
+        User recruiter = currentUserProvider.getCurrentUser();
+        return companyRepository.findByRecruiterId(recruiter.getId())
+                .map(CompanyResponse::from)
+                .orElseThrow(() -> new ResourceNotFoundException("You have not created a company yet"));
     }
 }

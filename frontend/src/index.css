@@ -29,7 +29,7 @@ body {
 
 #root {
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
 }
 
 .card {
@@ -90,7 +90,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   font: inherit;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -99,8 +100,13 @@ select {
   color: var(--text);
 }
 
+textarea {
+  resize: vertical;
+}
+
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: 2px solid var(--primary);
   outline-offset: -1px;
   border-color: transparent;
@@ -211,4 +217,21 @@ select:focus {
 
 .notice {
   margin-bottom: 16px;
+}
+
+/* ---------- Job list ---------- */
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.job {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }

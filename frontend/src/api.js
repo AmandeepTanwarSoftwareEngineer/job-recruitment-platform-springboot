@@ -4,22 +4,34 @@
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
 
-// Sends JSON and returns { ok, status, data }. On success data is the response body
-// (e.g. the AuthResponse { message, user, token }); on failure it is the ApiErrorResponse
-// ({ message, fieldErrors }).
+// POST with a JSON body. Returns { ok, status, data } (see request below).
+export function postJson(url, body, token) {
+  return request("POST", url, body, token);
+}
+
+// GET. Returns { ok, status, data } (see request below).
+export function getJson(url, token) {
+  return request("GET", url, undefined, token);
+}
+
+// On success data is the response body (e.g. the AuthResponse { message, user, token });
+// on failure it is the ApiErrorResponse ({ message, fieldErrors }).
 // Pass a token for endpoints that need sign-in; it is sent as "Authorization: Bearer <token>".
 // Leave it out for register and login: a bad token there would get a 401.
-export async function postJson(url, body, token) {
-  const headers = { "Content-Type": "application/json" };
+async function request(method, url, body, token) {
+  const headers = {};
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
   try {
     const response = await fetch(url, {
-      method: "POST",
+      method,
       headers,
-      body: JSON.stringify(body),
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
     const data = await response
       .json()

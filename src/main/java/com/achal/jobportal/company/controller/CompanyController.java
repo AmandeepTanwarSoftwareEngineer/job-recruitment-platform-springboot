@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,5 +29,12 @@ public class CompanyController {
     public ResponseEntity<CompanyResponse> create(@Valid @RequestBody CompanyRequest request) {
         CompanyResponse response = companyService.createCompany(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 200 with the recruiter's company, 404 if they have not created one yet.
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public CompanyResponse myCompany() {
+        return companyService.getMyCompany();
     }
 }

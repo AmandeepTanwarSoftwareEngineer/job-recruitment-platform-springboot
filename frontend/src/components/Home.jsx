@@ -1,6 +1,6 @@
-import CompanyForm from "./CompanyForm";
+import RecruiterDashboard from "./RecruiterDashboard";
 
-// Shown after signing in. Recruiters also get the create-company form.
+// Shown after signing in. Recruiters also get their company and jobs.
 export default function Home({ user, token, onLogout, onSessionExpired }) {
   const isRecruiter = user.role === "RECRUITER";
 
@@ -16,14 +16,13 @@ export default function Home({ user, token, onLogout, onSessionExpired }) {
         <dd>{isRecruiter ? "Recruiter" : "Job seeker"}</dd>
       </dl>
 
-      <div className="panel">
-        <h2 className="panel-title">Your company</h2>
-        {isRecruiter ? (
-          <CompanyForm token={token} onSessionExpired={onSessionExpired} />
-        ) : (
-          <p className="muted">Only recruiters can create a company.</p>
-        )}
-      </div>
+      {isRecruiter ? (
+        <RecruiterDashboard token={token} onSessionExpired={onSessionExpired} />
+      ) : (
+        <div className="panel">
+          <p className="muted">Only recruiters can create a company and post jobs.</p>
+        </div>
+      )}
 
       <button type="button" className="btn secondary" onClick={onLogout}>
         Sign out
