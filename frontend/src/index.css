@@ -154,6 +154,30 @@ textarea:focus {
   background: var(--bg);
 }
 
+/* Small button, e.g. "Apply", "Edit", "Refresh". Comes after .secondary so its width wins. */
+.btn.small {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  justify-self: start;
+}
+
+/* A disabled small button means "not allowed yet" (e.g. Apply without a profile), not "busy". */
+.btn.small:disabled {
+  cursor: not-allowed;
+}
+
+/* Buttons side by side, e.g. "Save changes" + "Cancel". */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.row .btn.secondary {
+  width: auto;
+}
+
 /* ---------- Messages ---------- */
 .message {
   margin: 0;
@@ -234,4 +258,98 @@ textarea:focus {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+/* Title on the left, badge or button on the right. */
+.job-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.job-head > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.block {
+  display: block;
+}
+
+.job-description {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.quote {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--border);
+  background: var(--bg);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.apply-form,
+.review-form {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+a {
+  color: var(--primary);
+}
+
+/* ---------- Panel header: title on the left, a small button on the right ---------- */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.panel-header .panel-title {
+  margin: 0;
+}
+
+/* ---------- Application status badges ---------- */
+.badge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-applied {
+  background: #eff6ff;
+  color: var(--primary);
+}
+
+.badge-reviewed {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.badge-shortlisted {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.badge-rejected {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.badge-hired {
+  background: var(--success-bg);
+  color: var(--success);
 }

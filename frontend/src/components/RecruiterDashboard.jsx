@@ -3,9 +3,11 @@ import { getJson } from "../api";
 import CompanyForm from "./CompanyForm";
 import JobForm from "./JobForm";
 import JobList from "./JobList";
+import ReceivedApplications from "./ReceivedApplications";
 
 // What a recruiter sees after signing in:
-// no company yet -> the create-company form; has a company -> company details, post-a-job form, job list.
+// no company yet -> the create-company form;
+// has a company -> company details, post-a-job form, job list, applications received.
 export default function RecruiterDashboard({ token, onSessionExpired }) {
   const [status, setStatus] = useState("loading"); // "loading" | "ready" | "error"
   const [error, setError] = useState("");
@@ -95,6 +97,10 @@ export default function RecruiterDashboard({ token, onSessionExpired }) {
       <div className="panel">
         <h2 className="panel-title">Your jobs ({jobs.length})</h2>
         <JobList jobs={jobs} />
+      </div>
+
+      <div className="panel">
+        <ReceivedApplications token={token} onSessionExpired={onSessionExpired} />
       </div>
     </>
   );

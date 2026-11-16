@@ -1,6 +1,8 @@
+import CandidateDashboard from "./CandidateDashboard";
 import RecruiterDashboard from "./RecruiterDashboard";
 
-// Shown after signing in. Recruiters also get their company and jobs.
+// Shown after signing in. Recruiters get their company, jobs and received applications;
+// job seekers get their profile, the job board and their applications.
 export default function Home({ user, token, onLogout, onSessionExpired }) {
   const isRecruiter = user.role === "RECRUITER";
 
@@ -19,9 +21,7 @@ export default function Home({ user, token, onLogout, onSessionExpired }) {
       {isRecruiter ? (
         <RecruiterDashboard token={token} onSessionExpired={onSessionExpired} />
       ) : (
-        <div className="panel">
-          <p className="muted">Only recruiters can create a company and post jobs.</p>
-        </div>
+        <CandidateDashboard token={token} onSessionExpired={onSessionExpired} />
       )}
 
       <button type="button" className="btn secondary" onClick={onLogout}>
